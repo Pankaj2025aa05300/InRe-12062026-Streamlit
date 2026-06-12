@@ -295,7 +295,48 @@ if uploaded_file is not None:
         st.subheader("Phrase Query Comparison")
         st.dataframe(comparison_phrase_df)
 
+# ==================================
+# INFERENCE
+# ==================================
+
+        st.subheader("Inference")
+
         st.info(
-            "Positional Index preserves word positions and "
-            "therefore provides more accurate phrase matching."
+            """
+            Biword Index retrieves documents based on adjacent word pairs.
+            It is efficient and fast but may produce false positives when
+            phrase context is not completely preserved.
+
+            Positional Index stores the exact position of each term within
+            a document. Therefore it provides more accurate phrase matching
+            because it verifies that query terms occur in the correct order
+            and adjacent positions.
+            """
         )
+
+        # Comparison Table
+
+        comparison_detail_df = pd.DataFrame({
+            "Feature": [
+                "Storage Requirement",
+                "Search Speed",
+                "Phrase Accuracy",
+                "False Positives"
+            ],
+            "Biword Index": [
+                "Low",
+                "Fast",
+                "Moderate",
+                "Possible"
+            ],
+            "Positional Index": [
+                "High",
+                "Moderate",
+                "High",
+                "Rare"
+            ]
+            })
+
+        st.subheader("Biword vs Positional Index Comparison")
+        st.dataframe(comparison_detail_df)
+                )
