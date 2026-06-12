@@ -46,3 +46,6 @@ if uploaded_file:
 
     if "abstract" in df.columns:
         st.write(df["abstract"].iloc[0])
+
+  st.subheader("Preprocessing Comparison")
+  st.dataframe(comparison_df)
