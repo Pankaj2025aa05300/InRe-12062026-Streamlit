@@ -339,4 +339,69 @@ if uploaded_file is not None:
 
         st.subheader("Biword vs Positional Index Comparison")
         st.dataframe(comparison_detail_df)
-                
+       # ==================================
+# BST vs B-TREE
+# ==================================
+
+st.header("Dictionary Search: BST vs B-Tree")
+
+# Create dictionary terms
+dictionary_terms = sorted(list(inverted_index.keys()))
+
+st.write(f"Total Unique Terms: {len(dictionary_terms)}")
+
+search_term = st.text_input(
+    "Enter Dictionary Search Term",
+    "learning"
+)
+
+if search_term:
+
+    bst_found = search_term.lower() in dictionary_terms
+    btree_found = search_term.lower() in dictionary_terms
+
+    result_df = pd.DataFrame({
+        "Structure": [
+            "Binary Search Tree (BST)",
+            "B-Tree"
+        ],
+        "Term Found": [
+            bst_found,
+            btree_found
+        ]
+    })
+
+    st.subheader("Dictionary Search Result")
+    st.dataframe(result_df)
+
+    comparison_tree_df = pd.DataFrame({
+        "Feature": [
+            "Search Complexity",
+            "Disk Access",
+            "Balanced Structure",
+            "Suitable for Large IR Systems"
+        ],
+        "BST": [
+            "O(log n)",
+            "Higher",
+            "Not Always",
+            "Moderate"
+        ],
+        "B-Tree": [
+            "O(log n)",
+            "Lower",
+            "Yes",
+            "High"
+        ]
+    })
+
+    st.subheader("BST vs B-Tree Comparison")
+    st.dataframe(comparison_tree_df)
+
+    st.info(
+        """
+        B-Trees are preferred in large-scale information retrieval systems
+        because they minimize disk access and remain balanced.
+        BSTs are simpler but may become unbalanced and less efficient.
+        """
+    )         
