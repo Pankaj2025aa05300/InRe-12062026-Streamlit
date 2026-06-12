@@ -158,3 +158,73 @@ if uploaded_file:
         })
 
         st.dataframe(index_df)
+        # ====================================
+# PHRASE QUERY PROCESSING
+# ====================================
+
+st.header("Phrase Query Processing")
+
+query = st.text_input(
+    "Enter Phrase Query",
+    value="machine learning"
+)
+
+if query:
+
+    # -------------------------------
+    # BIWORD INDEX
+    # -------------------------------
+
+    biword_index = defaultdict(set)
+
+    for doc_id, doc in enumerate(df["abstract"][:100]):
+
+        words = re.findall(
+            r'\b\w+\b',
+            str(doc).lower()
+        )
+
+        for i in range(len(words) - 1):
+
+            biword = words[i] + " " + words[i + 1]
+
+            biword_index[biword].add(doc_id)
+
+    biword_results = list(
+        biword_index.get(
+            query.lower(),
+            set()
+        )
+    )
+
+    # -------------------------------
+    # POSITIONAL INDEX
+    # -------------------------------
+
+    positional_index = defaultdict(
+        lambda: defaultdict(list)
+    )
+
+    for doc_id, doc in enumerate(df["abstract"][:100]):
+
+        words = re.findall(
+            r'\b\w+\b',
+            str(doc).lower()
+        )
+
+        for pos, word in enumerate(words):
+
+            positional_index[word][doc_id].append(pos)
+
+    positional_results = []
+
+    query_terms = query.lower().split()
+
+    if len(query_terms) == 2:
+
+        first_word = query_terms[0]
+        second_word = query_terms[1]
+
+        common_docs = set(
+            positional_index[first_word].keys()
+       
