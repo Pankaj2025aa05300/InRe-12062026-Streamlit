@@ -405,3 +405,65 @@ if search_term:
         BSTs are simpler but may become unbalanced and less efficient.
         """
     )         
+# ==================================
+# TOLERANT RETRIEVAL
+# ==================================
+
+st.header("Tolerant Retrieval")
+
+query_word = st.text_input(
+    "Enter Word for Tolerant Retrieval",
+    "machne"
+)
+
+def edit_distance_one(word, vocabulary):
+
+    suggestions = []
+
+    for vocab_word in vocabulary:
+
+        if abs(len(vocab_word) - len(word)) <= 2:
+
+            matches = sum(
+                1
+                for a, b in zip(word, vocab_word)
+                if a == b
+            )
+
+            if matches >= max(
+                len(word),
+                len(vocab_word)
+            ) - 2:
+
+                suggestions.append(vocab_word)
+
+    return suggestions[:10]
+
+if query_word:
+
+    suggestions = edit_distance_one(
+        query_word.lower(),
+        dictionary_terms
+    )
+
+    st.subheader("Suggested Terms")
+
+    if suggestions:
+
+        suggestion_df = pd.DataFrame({
+            "Suggested Terms": suggestions
+        })
+
+        st.dataframe(suggestion_df)
+
+    else:
+
+        st.write("No suggestions found")
+
+    st.info(
+        """
+        Tolerant Retrieval helps users find relevant documents
+        even when queries contain spelling mistakes.
+        This improves usability and recall in information retrieval systems.
+        """
+    )
