@@ -416,28 +416,18 @@ query_word = st.text_input(
     "machne"
 )
 
+from difflib import get_close_matches
+
 def edit_distance_one(word, vocabulary):
 
-    suggestions = []
+    suggestions = get_close_matches(
+        word,
+        vocabulary,
+        n=10,
+        cutoff=0.6
+    )
 
-    for vocab_word in vocabulary:
-
-        if abs(len(vocab_word) - len(word)) <= 2:
-
-            matches = sum(
-                1
-                for a, b in zip(word, vocab_word)
-                if a == b
-            )
-
-            if matches >= max(
-                len(word),
-                len(vocab_word)
-            ) - 2:
-
-                suggestions.append(vocab_word)
-
-    return suggestions[:10]
+    return suggestions
 
 if query_word:
 
