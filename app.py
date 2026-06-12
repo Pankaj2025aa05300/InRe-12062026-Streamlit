@@ -9,33 +9,42 @@ from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from nltk.stem import WordNetLemmatizer
 
-# Download NLTK resources
-nltk.download('punkt')
-nltk.download('punkt_tab')
-nltk.download('stopwords')
-nltk.download('wordnet')
+# NLTK Downloads
+nltk.download('punkt', quiet=True)
+nltk.download('punkt_tab', quiet=True)
+nltk.download('stopwords', quiet=True)
+nltk.download('wordnet', quiet=True)
 
+# Page Config
 st.set_page_config(page_title="Information Retrieval System")
 
 st.title("Information Retrieval System")
 st.write("BITS Pilani Assignment 1")
 
+# File Upload
 uploaded_file = st.file_uploader(
     "Upload Dataset",
     type=["csv"]
 )
 
-if uploaded_file:
+if uploaded_file is not None:
 
+    # Read Dataset
     df = pd.read_csv(uploaded_file)
 
     st.success(f"{len(df)} documents loaded")
 
-    # Dataset Preview
+    # ==================================
+    # DATASET PREVIEW
+    # ==================================
+
     st.subheader("Dataset Preview")
     st.dataframe(df.head())
 
-    # Dataset Information
+    # ==================================
+    # DATASET INFORMATION
+    # ==================================
+
     st.subheader("Dataset Information")
 
     col1, col2 = st.columns(2)
@@ -50,7 +59,10 @@ if uploaded_file:
                 df["category"].nunique()
             )
 
-    # Category Distribution
+    # ==================================
+    # CATEGORY DISTRIBUTION
+    # ==================================
+
     if "category" in df.columns:
 
         st.subheader("Category Distribution")
@@ -59,19 +71,27 @@ if uploaded_file:
             df["category"].value_counts()
         )
 
-    # Sample Abstract
-    if "abstract" in df.columns:
+    # ==================================
+    # SAMPLE ABSTRACT
+    # ==================================
 
-        st.subheader("Sample Abstract")
+    if "abstract" in df.columns:
 
         text = str(df["abstract"].iloc[0])
 
+        st.subheader("Sample Abstract")
         st.write(text)
 
-        # Tokenization
+        # ==================================
+        # TOKENIZATION
+        # ==================================
+
         tokens = word_tokenize(text.lower())
 
-        # Stopword Removal
+        # ==================================
+        # STOPWORD REMOVAL
+        # ==================================
+
         stop_words = set(stopwords.words("english"))
 
         filtered_tokens = [
@@ -80,7 +100,10 @@ if uploaded_file:
             if word.isalnum() and word not in stop_words
         ]
 
-        # Stemming
+        # ==================================
+        # STEMMING
+        # ==================================
+
         stemmer = PorterStemmer()
 
         stemmed_tokens = [
@@ -88,7 +111,10 @@ if uploaded_file:
             for word in filtered_tokens
         ]
 
-        # Lemmatization
+        # ==================================
+        # LEMMATIZATION
+        # ==================================
+
         lemmatizer = WordNetLemmatizer()
 
         lemmatized_tokens = [
@@ -96,7 +122,10 @@ if uploaded_file:
             for word in filtered_tokens
         ]
 
-        # Comparison Table
+        # ==================================
+        # PREPROCESSING COMPARISON
+        # ==================================
+
         n = min(
             len(tokens),
             len(filtered_tokens),
@@ -115,7 +144,9 @@ if uploaded_file:
         st.subheader("Preprocessing Comparison")
         st.dataframe(comparison_df)
 
-        # Token Outputs
+        # ==================================
+        # OUTPUTS
+        # ==================================
 
         st.subheader("Tokenized Output")
         st.write(tokens[:50])
@@ -129,9 +160,9 @@ if uploaded_file:
         st.subheader("Lemmatized Output")
         st.write(lemmatized_tokens[:50])
 
-        # ====================================
+        # ==================================
         # INVERTED INDEX
-        # ====================================
+        # ==================================
 
         st.subheader("Inverted Index")
 
@@ -158,73 +189,113 @@ if uploaded_file:
         })
 
         st.dataframe(index_df)
-        # ====================================
-# PHRASE QUERY PROCESSING
-# ====================================
 
-st.header("Phrase Query Processing")
+        # ==================================
+        # PHRASE QUERY PROCESSING
+        # ==================================
 
-query = st.text_input(
-    "Enter Phrase Query",
-    value="machine learning"
-)
+        st.header("Phrase Query Processing")
 
-if query:
-
-    # -------------------------------
-    # BIWORD INDEX
-    # -------------------------------
-
-    biword_index = defaultdict(set)
-
-    for doc_id, doc in enumerate(df["abstract"][:100]):
-
-        words = re.findall(
-            r'\b\w+\b',
-            str(doc).lower()
+        query = st.text_input(
+            "Enter Phrase Query",
+            "machine learning"
         )
 
-        for i in range(len(words) - 1):
+        # BIWORD INDEX
 
-            biword = words[i] + " " + words[i + 1]
+        biword_index = defaultdict(set)
 
-            biword_index[biword].add(doc_id)
+        for doc_id, doc in enumerate(df["abstract"][:100]):
 
-    biword_results = list(
-        biword_index.get(
-            query.lower(),
-            set()
+            words = re.findall(
+                r'\b\w+\b',
+                str(doc).lower()
+            )
+
+            for i in range(len(words) - 1):
+
+                biword = (
+                    words[i]
+                    + " "
+                    + words[i + 1]
+                )
+
+                biword_index[biword].add(doc_id)
+
+        biword_results = list(
+            biword_index.get(
+                query.lower(),
+                set()
+            )
         )
-    )
 
-    # -------------------------------
-    # POSITIONAL INDEX
-    # -------------------------------
+        # POSITIONAL INDEX
 
-    positional_index = defaultdict(
-        lambda: defaultdict(list)
-    )
-
-    for doc_id, doc in enumerate(df["abstract"][:100]):
-
-        words = re.findall(
-            r'\b\w+\b',
-            str(doc).lower()
+        positional_index = defaultdict(
+            lambda: defaultdict(list)
         )
 
-        for pos, word in enumerate(words):
+        for doc_id, doc in enumerate(df["abstract"][:100]):
 
-            positional_index[word][doc_id].append(pos)
+            words = re.findall(
+                r'\b\w+\b',
+                str(doc).lower()
+            )
 
-    positional_results = []
+            for pos, word in enumerate(words):
 
-    query_terms = query.lower().split()
+                positional_index[word][doc_id].append(pos)
 
-    if len(query_terms) == 2:
+        positional_results = []
 
-        first_word = query_terms[0]
-        second_word = query_terms[1]
+        query_terms = query.lower().split()
 
-        common_docs = set(
-            positional_index[first_word].keys()
-       
+        if len(query_terms) == 2:
+
+            first_word = query_terms[0]
+            second_word = query_terms[1]
+
+            common_docs = (
+                set(positional_index[first_word].keys())
+                &
+                set(positional_index[second_word].keys())
+            )
+
+            for doc_id in common_docs:
+
+                first_positions = positional_index[first_word][doc_id]
+                second_positions = positional_index[second_word][doc_id]
+
+                for pos in first_positions:
+
+                    if (pos + 1) in second_positions:
+
+                        positional_results.append(doc_id)
+                        break
+
+        # RESULTS
+
+        st.subheader("Biword Index Result")
+        st.write(biword_results)
+
+        st.subheader("Positional Index Result")
+        st.write(positional_results)
+
+        comparison_phrase_df = pd.DataFrame({
+            "Method": [
+                "Biword Index",
+                "Positional Index"
+            ],
+            "Retrieved Documents": [
+                len(biword_results),
+                len(positional_results)
+            ]
+        })
+
+        st.subheader("Phrase Query Comparison")
+        st.dataframe(comparison_phrase_df)
+
+        st.info(
+            "Positional Index preserves word positions and "
+            "therefore provides more accurate phrase matching."
+        )
