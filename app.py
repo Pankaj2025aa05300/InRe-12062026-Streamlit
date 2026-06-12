@@ -1,5 +1,17 @@
 import streamlit as st
 import pandas as pd
+import nltk
+
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
+from nltk.stem import WordNetLemmatizer
+
+# Download NLTK resources
+nltk.download('punkt')
+nltk.download('punkt_tab')
+nltk.download('stopwords')
+nltk.download('wordnet')
 
 st.set_page_config(page_title="Information Retrieval System")
 
@@ -17,9 +29,11 @@ if uploaded_file:
 
     st.success(f"{len(df)} documents loaded")
 
+    # Dataset Preview
     st.subheader("Dataset Preview")
     st.dataframe(df.head())
 
+    # Dataset Information
     st.subheader("Dataset Information")
 
     col1, col2 = st.columns(2)
@@ -34,6 +48,7 @@ if uploaded_file:
                 df["category"].nunique()
             )
 
+    # Category Distribution
     if "category" in df.columns:
 
         st.subheader("Category Distribution")
@@ -42,10 +57,88 @@ if uploaded_file:
             df["category"].value_counts()
         )
 
-    st.subheader("Sample Abstract")
-
+    # Sample Abstract
     if "abstract" in df.columns:
-        st.write(df["abstract"].iloc[0])
 
-    st.subheader("Preprocessing Comparison")
-    st.dataframe(comparison_df)
+        st.subheader("Sample Abstract")
+
+        text = str(df["abstract"].iloc[0])
+
+        st.write(text)
+
+        # -------------------------
+        # Tokenization
+        # -------------------------
+
+        tokens = word_tokenize(text.lower())
+
+        # -------------------------
+        # Stopword Removal
+        # -------------------------
+
+        stop_words = set(stopwords.words("english"))
+
+        filtered_tokens = [
+            word
+            for word in tokens
+            if word.isalnum() and word not in stop_words
+        ]
+
+        # -------------------------
+        # Stemming
+        # -------------------------
+
+        stemmer = PorterStemmer()
+
+        stemmed_tokens = [
+            stemmer.stem(word)
+            for word in filtered_tokens
+        ]
+
+        # -------------------------
+        # Lemmatization
+        # -------------------------
+
+        lemmatizer = WordNetLemmatizer()
+
+        lemmatized_tokens = [
+            lemmatizer.lemmatize(word)
+            for word in filtered_tokens
+        ]
+
+        # -------------------------
+        # Comparison Table
+        # -------------------------
+
+        n = min(
+            len(tokens),
+            len(filtered_tokens),
+            len(stemmed_tokens),
+            len(lemmatized_tokens),
+            20
+        )
+
+        comparison_df = pd.DataFrame({
+            "Original": tokens[:n],
+            "Stopword Removed": filtered_tokens[:n],
+            "Stemmed": stemmed_tokens[:n],
+            "Lemmatized": lemmatized_tokens[:n]
+        })
+
+        st.subheader("Preprocessing Comparison")
+
+        st.dataframe(comparison_df)
+
+        # Token Display
+
+        st.subheader("Tokenized Output")
+        st.write(tokens[:50])
+
+        st.subheader("Stopword Removal Output")
+        st.write(filtered_tokens[:50])
+
+        st.subheader("Stemmed Output")
+        st.write(stemmed_tokens[:50])
+
+        st.subheader("Lemmatized Output")
+        st.write(lemmatized_tokens[:50])
