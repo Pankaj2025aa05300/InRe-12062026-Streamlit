@@ -1,7 +1,9 @@
 import streamlit as st
 import pandas as pd
 import nltk
+import re
 
+from collections import defaultdict
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
@@ -66,16 +68,10 @@ if uploaded_file:
 
         st.write(text)
 
-        # -------------------------
         # Tokenization
-        # -------------------------
-
         tokens = word_tokenize(text.lower())
 
-        # -------------------------
         # Stopword Removal
-        # -------------------------
-
         stop_words = set(stopwords.words("english"))
 
         filtered_tokens = [
@@ -84,10 +80,7 @@ if uploaded_file:
             if word.isalnum() and word not in stop_words
         ]
 
-        # -------------------------
         # Stemming
-        # -------------------------
-
         stemmer = PorterStemmer()
 
         stemmed_tokens = [
@@ -95,10 +88,7 @@ if uploaded_file:
             for word in filtered_tokens
         ]
 
-        # -------------------------
         # Lemmatization
-        # -------------------------
-
         lemmatizer = WordNetLemmatizer()
 
         lemmatized_tokens = [
@@ -106,10 +96,7 @@ if uploaded_file:
             for word in filtered_tokens
         ]
 
-        # -------------------------
         # Comparison Table
-        # -------------------------
-
         n = min(
             len(tokens),
             len(filtered_tokens),
@@ -126,10 +113,9 @@ if uploaded_file:
         })
 
         st.subheader("Preprocessing Comparison")
-
         st.dataframe(comparison_df)
 
-        # Token Display
+        # Token Outputs
 
         st.subheader("Tokenized Output")
         st.write(tokens[:50])
@@ -142,3 +128,33 @@ if uploaded_file:
 
         st.subheader("Lemmatized Output")
         st.write(lemmatized_tokens[:50])
+
+        # ====================================
+        # INVERTED INDEX
+        # ====================================
+
+        st.subheader("Inverted Index")
+
+        inverted_index = defaultdict(set)
+
+        for doc_id, doc in enumerate(df["abstract"][:100]):
+
+            words = re.findall(
+                r'\b\w+\b',
+                str(doc).lower()
+            )
+
+            for word in words:
+                inverted_index[word].add(doc_id)
+
+        sample_terms = list(inverted_index.keys())[:20]
+
+        index_df = pd.DataFrame({
+            "Term": sample_terms,
+            "Document IDs": [
+                list(inverted_index[t])[:10]
+                for t in sample_terms
+            ]
+        })
+
+        st.dataframe(index_df)
