@@ -339,4 +339,4 @@ if uploaded_file is not None:
 
         st.subheader("Biword vs Positional Index Comparison")
         st.dataframe(comparison_detail_df)
-                )
+                
